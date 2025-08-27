@@ -1,0 +1,5 @@
+@import "tailwindcss";
+
+.bg-salamon-color{
+    background-color: rgb(251,146,60);
+}   
