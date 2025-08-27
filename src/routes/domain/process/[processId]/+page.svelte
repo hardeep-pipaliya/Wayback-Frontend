@@ -290,19 +290,6 @@
             </div>
 
             <div class="col-span-12">
-              <div class="grid grid-cols-12 gap-4">
-                {#each Array(4) as _, i}
-                  <div class="col-span-12 sm:col-span-6 lg:col-span-3">
-                    <div class="border rounded-lg overflow-hidden">
-                      <div class="bg-gray-100 h-28 flex items-center justify-center text-gray-400 text-xs">Screenshot {i + 1}</div>
-                      <div class="p-2 text-xs text-gray-600">01/2019</div>
-                    </div>
-                  </div>
-                {/each}
-              </div>
-            </div>
-
-            <div class="col-span-12">
               <div class="border border-gray-200 rounded-lg overflow-hidden">
                 <div class="bg-gray-100 px-4 py-2 text-sm font-medium">Processing log</div>
                 <div class="bg-black text-gray-200 text-xs p-4 max-h-64 overflow-auto space-y-2">
@@ -320,54 +307,152 @@
             </div>
           </div>
         </div>
+      {:else if currentStep === 3}
+        <!-- STEP 3: Content Extraction -->
+          <div class="rounded-2xl border border-gray-200">
+            <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-2xl">
+              <div class="mb-4 flex items-center justify-between">
+                <div>
+                  <h2 class="text-base font-semibold text-gray-800">Content Extraction</h2>
+                  <p class="text-xs text-gray-500">Specify selector for title, category and configure options to tailor the extraction process, like handling image and links.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="p-4">
+              <div class="flex items-center gap-3 flex-wrap mb-3">
+                {#each ['Title','Tag','Category','Author','Date','Image','Content','SEO'] as opt, i}
+                  <label class="inline-flex items-center gap-2 px-3 py-1.5 rounded-md border {i === 0 ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-white border-gray-300 text-gray-700'} cursor-pointer text-xs">
+                    <input type="radio" name="ce-opt" class="hidden" />
+                    <span>{opt}</span>
+                  </label>
+                {/each}
+                <button class="ml-auto px-3 py-1.5 text-xs font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700">Save</button>
+              </div>
+
+              <div class="grid grid-cols-12 gap-4">
+                <div class="col-span-12 lg:col-span-7">
+                  <div class="text-sm font-medium mb-2">Article HTML</div>
+                  <textarea class="w-full h-64 border border-gray-300 rounded-lg p-3 text-xs focus:outline-none" placeholder="Paste or preview extracted HTML here..."></textarea>
+                </div>
+                <div class="col-span-12 lg:col-span-5">
+                  <div class="text-sm font-medium mb-2">Processed Preview</div>
+                  <div class="h-64 border border-gray-300 rounded-lg p-3 text-xs text-gray-500">Preview will appear here</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {:else if currentStep === 4}
+        <!-- STEP 4: Wayback URLs table -->
+        <div>
+          <div class="rounded-2xl border border-gray-200">
+            <div class="px-4 py-3 border-b border-gray-200 bg-gray-50 rounded-t-2xl">
+              <h2 class="text-base font-semibold text-gray-800">Wayback Urls</h2>
+              <p class="text-xs text-gray-500">Choose the pages you want to download. Exclude unnecessary categories and sections for a cleaner result.</p>
+            </div>
+            <div class="p-4">
+              <div class="flex items-center justify-between mb-3">
+                <div class="text-center text-xs text-gray-500 w-full">
+                  <label class="inline-flex items-center gap-2 text-gray-700">
+                    <input type="checkbox" class="rounded border-gray-300" />
+                    <span class="text-sm">Select All Wayback URLs</span>
+                    <span class="text-gray-400 text-xs">(0)</span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="flex items-center justify-end gap-3 mb-3">
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="text-gray-600">Per Page</span>
+                  <select class="border border-gray-300 rounded-md px-2 py-1 text-xs focus:outline-none">
+                    <option>10</option>
+                    <option>20</option>
+                    <option>50</option>
+                  </select>
+                </div>
+                <div class="relative">
+                  <input class="border border-gray-300 rounded-md pl-8 pr-3 py-1 text-xs focus:outline-none" placeholder="Search keywords ..." />
+                  <svg class="w-4 h-4 text-gray-400 absolute left-2 top-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" /></svg>
+                </div>
+              </div>
+
+              <div class="border border-gray-200 rounded-lg overflow-hidden">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-gray-50 text-gray-600">
+                    <tr>
+                      <th class="px-3 py-2 w-10"><input type="checkbox" class="rounded border-gray-300" /></th>
+                      <th class="px-3 py-2 w-12">#</th>
+                      <th class="px-3 py-2">Url</th>
+                      <th class="px-3 py-2 w-48">Time Stamp</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {#each [] as _row, i}
+                      <tr class="border-t">
+                        <td class="px-3 py-2"><input type="checkbox" class="rounded border-gray-300" /></td>
+                        <td class="px-3 py-2 text-gray-500">{i + 1}</td>
+                        <td class="px-3 py-2">—</td>
+                        <td class="px-3 py-2">—</td>
+                      </tr>
+                    {:else}
+                      <tr>
+                        <td class="px-3 py-6 text-center text-gray-400" colspan="4">No URLs loaded yet.</td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
       {:else}
         <!-- Placeholder for other steps until implemented -->
         <div class="text-sm text-gray-600">Step {currentStep} content will appear here.</div>
       {/if}
     </div>
+  </div>
 
     <!-- Navigation Buttons -->
-    <div class="flex justify-between items-center">
+  <div class="flex justify-between items-center m-5">
+    <button 
+      class={getPrevBtnClasses()}
+      disabled={currentStep === 1}
+      on:click={handlePrev}
+    >
+      <span class="flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Previous
+      </span>
+    </button>
+    
+    <div class="flex space-x-2">
+      <span class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-medium">
+        Step {currentStep} of {totalSteps}
+      </span>
+    </div>
+    
+    {#if !isCurrentStepRunning}
       <button 
-        class={getPrevBtnClasses()}
-        disabled={currentStep === 1}
-        on:click={handlePrev}
+        class={getNextBtnClasses()}
+        on:click={handleNext}
       >
         <span class="flex items-center">
-          <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-          </svg>
-          Previous
+          {#if currentStep === totalSteps}
+            Complete
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          {:else}
+            Next
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+            </svg>
+          {/if}
         </span>
       </button>
-      
-      <div class="flex space-x-2">
-        <span class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-lg font-medium">
-          Step {currentStep} of {totalSteps}
-        </span>
-      </div>
-      
-      {#if !isCurrentStepRunning}
-        <button 
-          class={getNextBtnClasses()}
-          on:click={handleNext}
-        >
-          <span class="flex items-center">
-            {#if currentStep === totalSteps}
-              Complete
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-            {:else}
-              Next
-              <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-              </svg>
-            {/if}
-          </span>
-        </button>
-      {/if}
-    </div>
+    {/if}
   </div>
 
 <!-- Removed duplicate bottom domain form: handled inside Step 1 above -->
