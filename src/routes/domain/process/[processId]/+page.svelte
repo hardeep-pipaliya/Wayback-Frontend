@@ -926,10 +926,12 @@
     </button>
   {/if}
 </div>
+
+
 <!-- Add Fund Modal -->
 {#if showAddFundModal}
   <div
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
     on:click={handleModalBackdropClick}
     on:keydown={(e) => e.key === "Escape" && closeAddMoneyModal()}
     role="button"
@@ -1003,12 +1005,12 @@
 
       <div class="flex justify-between mt-4">
         <p class="text-gray-500">Coupon Amount</p>
-        <p>${couponAmount}</p>
+        <p>${couponAmount.toFixed(2)}</p>
       </div>
 
       <div class="flex justify-between font-semibold mt-4">
         <p>Total</p>
-        <p>${totalAmount}</p>
+        <p>${totalAmount.toFixed(2)}</p>
       </div>
 
       <!-- Payment Button Section -->

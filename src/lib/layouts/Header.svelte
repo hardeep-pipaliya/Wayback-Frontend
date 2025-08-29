@@ -369,7 +369,7 @@
                 </ul>
                 <button
                   class="w-full mt-2 items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors duration-300 cursor-pointer"
-                  on:click={() => goto("/notification")}
+                  on:click={() => goto("/notifications")}
                 >
                   See all notifications
                 </button>
@@ -453,6 +453,7 @@
                       stroke-linejoin="round"
                     />
                   </svg>
+                  <a href="/user-profile/" class="block text-left ml-4">
                   <div class="block text-left ml-4">
                     <p class="font-semibold text-sm text-black mb-0.5">
                       My Account
@@ -461,6 +462,7 @@
                       Edit Account details
                     </p>
                   </div>
+                </a>
                 </div>
                 <div class="flex items-center">
                   <svg
