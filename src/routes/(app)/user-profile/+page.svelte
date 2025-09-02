@@ -109,10 +109,6 @@
     <div class="grid grid-cols-12 gap-5 pt-6 font-poppins">
       <div class="col-span-12 lg:col-span-4">
       <div class="p-4 border border-gray-200 rounded-lg">
-        <h5 class="text-base font-semibold text-gray-900 pb-4 border-b border-gray-200">
-            User
-          </h5>
-
         <form class="flex flex-col gap-4 pt-4" on:submit|preventDefault={handleSubmit}>
           <!-- First Name -->
             <div class="flex flex-col md:flex-row items-start gap-3">

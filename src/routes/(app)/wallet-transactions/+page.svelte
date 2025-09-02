@@ -69,6 +69,13 @@
     showAddButton = false; // Hide the Add button when clicked
   }
 
+  function closeAddFunds(): void {
+    showAddFunds = false;
+    showPaymentProviders = false;
+    showBackButton = false;
+    showAddButton = true;
+  }
+
   function selectAmount(amount: string): void {
     selectedAmount = amount;
     customAmount = amount.replace('$', '');
@@ -149,9 +156,7 @@
   }
 
   function resetForm(): void {
-    showAddFunds = false;
-    showPaymentProviders = false;
-    showBackButton = false;
+    closeAddFunds();
     selectedAmount = '';
     customAmount = '';
     couponCode = '';
@@ -216,10 +221,17 @@
 
   function handlePageChange() {
     console.log("clicked on page change");}
+
+  // Close modal when clicking outside
+  function handleModalBackdropClick(event: Event) {
+    if (event.target === event.currentTarget) {
+      closeAddFunds();
+    }
+  }
     
 </script>
 
-<div class="p-6 max-w-7xl mx-auto">
+<div class="p-1 max-w-7xl mx-auto">
   <!-- Header Section -->
   <div class="flex flex-col lg:flex-row items-center justify-between gap-4 pb-6 border-b border-gray-200">
     <!-- Left Side: Title Section -->
@@ -302,9 +314,18 @@
 
   <!-- Add Funds Section -->
   {#if showAddFunds}
+  <div
+    on:click={handleModalBackdropClick}
+    on:keydown={(e) => e.key === "Escape" && closeAddFunds()}
+    role="button"
+    tabindex="0"
+  >
     <div class="w-1/2 ml-0 bg-white rounded-2xl p-6 shadow-lg mt-4 border border-gray-200">
       <div class="flex justify-between items-center border-b border-gray-200 pb-3">
         <h3 class="text-lg font-semibold">Enter Amount</h3>
+        <button on:click={closeAddFunds} aria-label="Close" class="float-right">
+        <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"></path></svg>
+        </button>
       </div>
 
       <!-- Predefined Amount Buttons -->
@@ -326,7 +347,7 @@
         type="number" 
         bind:value={customAmount}
         on:input={handleCustomAmountChange}
-        class="w-full mt-4 p-2 border border-gray-200 rounded-lg" 
+        class="w-full mt-4 p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
         placeholder="Enter Amount"
         min="1"
       />
@@ -336,7 +357,7 @@
         <input 
           type="text" 
           bind:value={couponCode}
-          class="flex-grow p-2 border border-gray-200 rounded-lg" 
+          class="flex-grow p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" 
           placeholder="Enter Promo Code"
         />
         <button 
@@ -371,6 +392,7 @@
       >
         ${totalAmount.toFixed(2)} Pay with Razorpay
       </button>
+    </div>
     </div>
   {/if}
 

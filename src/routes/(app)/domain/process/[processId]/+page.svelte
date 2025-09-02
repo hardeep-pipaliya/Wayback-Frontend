@@ -16,10 +16,6 @@
   }
   let currentStep: number = 1;
   const totalSteps: number = 5;
-  $: overallProgress =
-    currentStep === totalSteps
-      ? 100
-      : Math.round(((currentStep - 1) / totalSteps) * 100);
 
   // Step 1 processing state (logs + progress)
   type LogEntry = { index: number; message: string };
@@ -28,7 +24,11 @@
   let step1Completed = false;
   let step1Enabled = false;
   $: isCurrentStepRunning =
-    (currentStep === 1 && step1Running) || (currentStep === 2 && step2Running);
+    (currentStep === 1 && step1Running) || 
+    (currentStep === 2 && step2Running) || 
+    (currentStep === 3 && step3Running) || 
+    (currentStep === 4 && step4Running) || 
+    (currentStep === 5 && step5Running);
 
   const step1Messages: string[] = [
     "Starting installation. Upgrading system to latest update. This will take a while...",
@@ -49,6 +49,43 @@
     "Finalizing selection UI...",
   ];
 
+  // Step 3 processing state (logs)
+  let step3Logs: LogEntry[] = [];
+  let step3Running = false;
+  let step3Completed = false;
+  const step3Messages: string[] = [
+    "Initializing content extraction...",
+    "Analyzing HTML structure...",
+    "Identifying content selectors...",
+    "Processing title and metadata...",
+    "Extracting images and links...",
+    "Finalizing content extraction...",
+  ];
+
+  // Step 4 processing state (logs)
+  let step4Logs: LogEntry[] = [];
+  let step4Running = false;
+  let step4Completed = false;
+  const step4Messages: string[] = [
+    "Loading Wayback URLs...",
+    "Filtering and processing URLs...",
+    "Generating URL list...",
+    "Preparing selection interface...",
+    "Finalizing URL processing...",
+  ];
+
+  // Step 5 processing state (logs)
+  let step5Logs: LogEntry[] = [];
+  let step5Running = false;
+  let step5Completed = false;
+  const step5Messages: string[] = [
+    "Calculating final statistics...",
+    "Processing payment details...",
+    "Generating overview report...",
+    "Preparing download options...",
+    "Finalizing process...",
+  ];
+
   function getCircleClasses(step: number): string {
     if (step <= currentStep) {
       return "flex items-center justify-center w-[34px] h-[34px] bg-indigo-500 text-white rounded-full transition-colors duration-300";
@@ -67,7 +104,7 @@
 
   function getPrevBtnClasses(): string {
     if (currentStep === 1) {
-      return "px-6 py-3 bg-gray-200 text-gray-400 rounded-lg font-medium transition-all duration-300 cursor-not-allowed";
+      return "px-6 py-3 bg-gray-200 text-gray-400 rounded-lg font-medium transition-all duration-300 cursor-pointer";
     } else {
       return "px-6 py-3 bg-gray-600 text-white rounded-lg font-medium hover:bg-gray-700 transition-all duration-300 cursor-pointer";
     }
@@ -86,6 +123,50 @@
   function handlePrev(): void {
     if (currentStep > 1) {
       currentStep--;
+    }
+  }
+
+  function goToStep(step: number): void {
+    // Only allow navigation to completed steps or the next available step
+    if (step >= 1 && step <= totalSteps && !isCurrentStepRunning) {
+      const maxAllowedStep = Math.max(
+        1,
+        step1Completed ? 1 : 0,
+        step2Completed ? 2 : 0,
+        step3Completed ? 3 : 0,
+        step4Completed ? 4 : 0,
+        step5Completed ? 5 : 0
+      );
+      
+      if (step <= maxAllowedStep + 1) {
+        currentStep = step;
+      }
+    }
+  }
+
+  // Check if a step is completed
+  function isStepCompleted(step: number): boolean {
+    switch (step) {
+      case 1: return step1Completed;
+      case 2: return step2Completed;
+      case 3: return step3Completed;
+      case 4: return step4Completed;
+      case 5: return step5Completed;
+      default: return false;
+    }
+  }
+
+  // Check if next button should be shown for current step
+  function shouldShowNextButton(): boolean {
+    if (currentStep >= totalSteps) return false;
+    
+    switch (currentStep) {
+      case 1: return step1Completed && !step1Running;
+      case 2: return step2Completed && !step2Running;
+      case 3: return step3Completed && !step3Running;
+      case 4: return step4Completed && !step4Running;
+      case 5: return step5Completed && !step5Running;
+      default: return false;
     }
   }
 
@@ -109,10 +190,7 @@
         clearInterval(interval);
         step1Running = false;
         step1Completed = true;
-        // Auto-advance after a short pause to mimic clicking Next
-        setTimeout(() => {
-          if (currentStep === 1) handleNext();
-        }, 400);
+        // Step 1 is now completed, user can proceed to next step
       }
     }, 600);
   }
@@ -132,9 +210,66 @@
         clearInterval(interval);
         step2Running = false;
         step2Completed = true;
-        setTimeout(() => {
-          if (currentStep === 2) handleNext();
-        }, 400);
+        // Step 2 is now completed, user can proceed to next step
+      }
+    }, 600);
+  }
+
+  // Start Step 3 logs when entering step 3
+  function startStep3IfNeeded() {
+    if (currentStep !== 3 || step3Running || step3Completed) return;
+    step3Running = true;
+    step3Logs = [];
+    let i = 0;
+    const total = step3Messages.length;
+    const interval = setInterval(() => {
+      const message = step3Messages[i];
+      step3Logs = [...step3Logs, { index: i + 1, message }];
+      i++;
+      if (i >= total) {
+        clearInterval(interval);
+        step3Running = false;
+        step3Completed = true;
+        // Step 3 is now completed, user can proceed to next step
+      }
+    }, 600);
+  }
+
+  // Start Step 4 logs when entering step 4
+  function startStep4IfNeeded() {
+    if (currentStep !== 4 || step4Running || step4Completed) return;
+    step4Running = true;
+    step4Logs = [];
+    let i = 0;
+    const total = step4Messages.length;
+    const interval = setInterval(() => {
+      const message = step4Messages[i];
+      step4Logs = [...step4Logs, { index: i + 1, message }];
+      i++;
+      if (i >= total) {
+        clearInterval(interval);
+        step4Running = false;
+        step4Completed = true;
+        // Step 4 is now completed, user can proceed to next step
+      }
+    }, 600);
+  }
+
+  // Start Step 5 logs when entering step 5
+  function startStep5IfNeeded() {
+    if (currentStep !== 5 || step5Running || step5Completed) return;
+    step5Running = true;
+    step5Logs = [];
+    let i = 0;
+    const total = step5Messages.length;
+    const interval = setInterval(() => {
+      const message = step5Messages[i];
+      step5Logs = [...step5Logs, { index: i + 1, message }];
+      i++;
+      if (i >= total) {
+        clearInterval(interval);
+        step5Running = false;
+        step5Completed = true;
       }
     }, 600);
   }
@@ -147,6 +282,21 @@
   // Kick off when entering step 2
   $: if (currentStep === 2) {
     startStep2IfNeeded();
+  }
+
+  // Kick off when entering step 3
+  $: if (currentStep === 3) {
+    startStep3IfNeeded();
+  }
+
+  // Kick off when entering step 4
+  $: if (currentStep === 4) {
+    startStep4IfNeeded();
+  }
+
+  // Kick off when entering step 5
+  $: if (currentStep === 5) {
+    startStep5IfNeeded();
   }
 
   // Step 4 functions for wayback URLs
@@ -296,24 +446,26 @@
           fill="white"
         />
       </svg>
-      Privious
+      Previous
     </button>
   </div>
 </div>
 
-<div class="mt-4 p-5 border border-gray-200 rounded-2xl bg-white">
-  <div class="max-w-5xl mx-auto">
+
+  <div class="max-w-5xl mx-auto mt-4">
     <!-- Progress Steps with labels -->
     <div class="p-4 mb-4 border border-gray-200 rounded-2xl bg-white">
       <div class="flex items-center w-full ml-10">
         {#each Array(totalSteps) as _, idx}
           {#key idx}
             <div class="flex items-center flex-1">
-              <div
-                class={`${idx + 1 < currentStep ? "bg-indigo-600 text-white" : idx + 1 === currentStep ? "bg-indigo-500 text-white ring-2 ring-indigo-200" : "bg-gray-200 text-gray-400"} rounded-full w-[34px] h-[34px] flex items-center justify-center`}
+              <button
+                on:click={() => goToStep(idx + 1)}
+                class={`${idx + 1 < currentStep ? "bg-indigo-600 text-white" : idx + 1 === currentStep ? "bg-indigo-500 text-white ring-2 ring-indigo-200" : "bg-gray-200 text-gray-400"} rounded-full w-[34px] h-[34px] flex items-center justify-center transition-all duration-300 hover:scale-110 ${isStepCompleted(idx + 1) || idx + 1 <= currentStep ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'}`}
+                disabled={!isStepCompleted(idx + 1) && idx + 1 > currentStep}
               >
                 {idx + 1}
-              </div>
+              </button>
               <span
                 class="ml-2 text-xs font-medium {idx + 1 <= currentStep
                   ? 'text-indigo-700'
@@ -334,46 +486,36 @@
     <!-- STEP 1: Domain + Logs (logs bottom) -->
     {#if currentStep === 1}
       <div>
-        <div class="p-4 mb-4 border border-gray-200 rounded-2xl">
-          <label
-            for="domain-name"
-            class="block pb-1 text-sm font-medium text-gray-600"
-            >Domain name</label
-          >
-          <div class="flex items-center gap-x-4">
-            <div class="flex-1">
-              <input
-                type="text"
-                id="domain-name"
-                name="domain_name"
-                bind:value={domainName}
-                class="block w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none"
-                placeholder="Enter Domain Name Here"
-                disabled={step1Running || step1Completed}
-              />
-            </div>
-            <button
-              type="button"
-              on:click={handleSubmit}
-              class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex-shrink-0"
-              disabled={!domainName?.trim() || step1Running || step1Completed}
+        {#if !step1Running && !step1Completed}
+          <!-- Show domain input and submit button only before submission -->
+          <div class="p-4 mb-4 border border-gray-200 rounded-2xl">
+            <label
+              for="domain-name"
+              class="block pb-1 text-sm font-medium text-gray-600"
+              >Domain name</label
             >
-              Submit
-            </button>
+            <div class="flex items-center gap-x-4">
+              <div class="flex-1">
+                <input
+                  type="text"
+                  id="domain-name"
+                  name="domain_name"
+                  bind:value={domainName}
+                  class="block w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none"
+                  placeholder="Enter Domain Name Here"
+                />
+              </div>
+              <button
+                type="button"
+                on:click={handleSubmit}
+                class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex-shrink-0"
+                disabled={!domainName?.trim()}
+              >
+                Submit
+              </button>
+            </div>
           </div>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-3">
-          <div
-            class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
-            style={`width: ${overallProgress}%`}
-          ></div>
-        </div>
-        <div
-          class="flex items-center justify-between text-xs text-gray-500 mb-4"
-        >
-          <span>Progress</span>
-          <span>{overallProgress}%</span>
-        </div>
+        {/if}
 
         <div class="border border-gray-200 rounded-lg overflow-hidden">
           <div class="bg-gray-100 px-4 py-2 text-sm font-medium">Step log</div>
@@ -401,18 +543,6 @@
             Choose the pages you want to download. Exclude unnecessary
             categories and sections for a cleaner result.
           </p>
-        </div>
-        <div class="w-full bg-gray-200 rounded-full h-2.5 mb-3">
-          <div
-            class="bg-indigo-600 h-2.5 rounded-full transition-all duration-300"
-            style={`width: ${overallProgress}%`}
-          ></div>
-        </div>
-        <div
-          class="flex items-center justify-between text-xs text-gray-500 mb-4"
-        >
-          <span>Progress</span>
-          <span>{overallProgress}%</span>
         </div>
 
         <div class="grid grid-cols-12 gap-4">
@@ -497,6 +627,28 @@
                 class="h-64 border border-gray-300 rounded-lg p-3 text-xs text-gray-500"
               >
                 Preview will appear here
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 3 Logs -->
+          <div class="col-span-12 mt-4">
+            <div class="border border-gray-200 rounded-lg overflow-hidden">
+              <div class="bg-gray-100 px-4 py-2 text-sm font-medium">
+                Processing log
+              </div>
+              <div
+                class="bg-black text-gray-200 text-xs p-4 max-h-64 overflow-auto space-y-2"
+              >
+                {#each step3Logs as row}
+                  <div class="flex gap-3">
+                    <span class="text-indigo-400">{row.index}.</span>
+                    <span class="text-gray-200">{row.message}</span>
+                  </div>
+                {/each}
+                {#if step3Running}
+                  <div class="animate-pulse text-gray-400">Processing...</div>
+                {/if}
               </div>
             </div>
           </div>
@@ -646,6 +798,28 @@
             </table>
             <div id="pagination" class="flex justify-center mt-4"></div>
           </div>
+
+          <!-- Step 4 Logs -->
+          <div class="mt-4">
+            <div class="border border-gray-200 rounded-lg overflow-hidden">
+              <div class="bg-gray-100 px-4 py-2 text-sm font-medium">
+                Processing log
+              </div>
+              <div
+                class="bg-black text-gray-200 text-xs p-4 max-h-64 overflow-auto space-y-2"
+              >
+                {#each step4Logs as row}
+                  <div class="flex gap-3">
+                    <span class="text-indigo-400">{row.index}.</span>
+                    <span class="text-gray-200">{row.message}</span>
+                  </div>
+                {/each}
+                {#if step4Running}
+                  <div class="animate-pulse text-gray-400">Processing...</div>
+                {/if}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     {:else if currentStep === 5}
@@ -659,6 +833,8 @@
           <!-- Overview -->
           <div class="bg-gray-50 p-4 rounded-lg shadow w-full">
             <h2 class="text-lg font-semibold">Overview</h2>
+          </div>
+          <div class="p-4 rounded-lg shadow w-full">
             <div class="flex gap-8 mt-4">
               <!-- Total Articles -->
               <div
@@ -809,7 +985,8 @@
                 Add Fund
               </button>
             </div>
-            <div class="flex justify-between mt-2 text-sm text-gray-600">
+            <div class="flex justify-between mt-2 t
+            yext-sm text-gray-600">
               <p>Per Article charge:</p>
               <strong id="per-url-price">$0</strong>
             </div>
@@ -862,6 +1039,28 @@
             />
           </div>
         </div>
+
+        <!-- Step 5 Logs -->
+      </div>
+      <div class="mt-4 w-full">
+        <div class="border border-gray-200 rounded-lg overflow-hidden">
+          <div class="bg-gray-100 px-4 py-2 text-sm font-medium">
+            Processing log
+          </div>
+          <div
+            class="bg-black text-gray-200 text-xs p-4 max-h-64 overflow-auto space-y-2"
+          >
+            {#each step5Logs as row}
+              <div class="flex gap-3">
+                <span class="text-indigo-400">{row.index}.</span>
+                <span class="text-gray-200">{row.message}</span>
+              </div>
+            {/each}
+            {#if step5Running}
+              <div class="animate-pulse text-gray-400">Processing...</div>
+            {/if}
+          </div>
+        </div>
       </div>
     {:else}
       <!-- Placeholder for other steps until implemented -->
@@ -870,7 +1069,6 @@
       </div>
     {/if}
   </div>
-</div>
 
 <!-- Navigation Buttons -->
 <div class="flex justify-between items-center m-5">
@@ -927,7 +1125,6 @@
   {/if}
 </div>
 
-
 <!-- Add Fund Modal -->
 {#if showAddFundModal}
   <div
@@ -938,6 +1135,9 @@
     tabindex="0"
   >
     <div class="bg-white rounded-lg p-6 w-1/3 max-w-md mx-4">
+      <button on:click={closeAddMoneyModal} aria-label="Close" class="float-right">
+        <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14"><path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"></path></svg>
+      </button>
       <!-- Payment Provider Section -->
       <div class="mt-4">
         <h4 class="text-md font-semibold mb-2">Select Payment Provider</h4>
@@ -950,25 +1150,25 @@
       <div class="mt-4 grid grid-cols-4 gap-2">
         <button
           on:click={() => setAmount(20)}
-          class="p-2 rounded-lg text-center border bg-white hover:border-indigo-500 hover:text-indigo-500 focus:border-indigo-500 focus:text-indigo-500 transition-colors duration-200"
+          class="p-2 rounded-lg text-center border border-gray-200 bg-white hover:border-indigo-500 hover:text-indigo-500 focus:border-indigo-500 focus:text-indigo-500 transition-colors duration-200"
         >
           $20
         </button>
         <button
           on:click={() => setAmount(50)}
-          class="p-2 rounded-lg text-center border bg-white hover:border-indigo-500 hover:text-indigo-500 focus:border-indigo-500 focus:text-indigo-500 transition-colors duration-200"
+          class="p-2 rounded-lg text-center border border-gray-200 bg-white hover:border-indigo-500 hover:text-indigo-500 focus:border-indigo-500 focus:text-indigo-500 transition-colors duration-200"
         >
           $50
         </button>
         <button
           on:click={() => setAmount(80)}
-          class="p-2 rounded-lg text-center border bg-white hover:border-indigo-500 hover:text-indigo-500 focus:border-indigo-500 focus:text-indigo-500 transition-colors duration-200"
+          class="p-2 rounded-lg text-center border border-gray-200 bg-white hover:border-indigo-500 hover:text-indigo-500 focus:border-indigo-500 focus:text-indigo-500 transition-colors duration-200"
         >
           $80
         </button>
         <button
           on:click={() => setAmount(100)}
-          class="p-2 rounded-lg text-center border bg-white hover:border-indigo-500 hover:text-indigo-500 focus:border-indigo-500 focus:text-indigo-500 transition-colors duration-200"
+          class="p-2 rounded-lg text-center border border-gray-200 bg-white hover:border-indigo-500 hover:text-indigo-500 focus:border-indigo-500 focus:text-indigo-500 transition-colors duration-200"
         >
           $100
         </button>
@@ -977,7 +1177,7 @@
       <input
         type="text"
         bind:value={fundAmount}
-        class="w-full mt-4 p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+        class="w-full mt-4 p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         placeholder="Enter Amount"
       />
 
@@ -986,7 +1186,7 @@
         <input
           type="text"
           bind:value={couponCode}
-          class="flex-grow p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          class="flex-grow p-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           placeholder="Enter Promo Code"
         />
         <button
@@ -1031,3 +1231,4 @@
     </div>
   </div>
 {/if}
+

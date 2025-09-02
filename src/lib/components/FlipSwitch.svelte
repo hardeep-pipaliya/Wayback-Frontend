@@ -64,16 +64,16 @@
 }
 
 .flipswitch-inner:before {
-  content: "Inactive";
-  padding-left: 7px;
+  content: "Active";
+  padding-left: 13px;
   background-color: #4f46e5;
   color: #ffffff;
 }
 
 .flipswitch-inner:after {
-  content: "Active";
-  padding-right: 12px;
+  content: "Inactive";
   background-color: #eaecf0;
+  padding-right: 6px;
   color: #111827;
   text-align: right;
 }

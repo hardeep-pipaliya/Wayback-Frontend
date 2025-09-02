@@ -207,7 +207,7 @@
             <!-- Status indicator dot -->
             <span class="inline-block w-3 h-3 bg-green-500 rounded-full"></span>
             <!-- Text label -->
-            <span class="ml-1 text-green-500">Smooth</span>
+            <span class="ml-1 text-green-500 cursor-pointer">Smooth</span>
             <!-- Your custom SVG logo -->
              -
             <svg width="17" height="16" viewBox="0 0 17 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="ml-1">
@@ -370,7 +370,8 @@
                 <button
                   class="w-full mt-2 items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors duration-300 cursor-pointer"
                   on:click={() => goto("/notifications")}
-                >
+                  on:click={() => notificationDropdownOpen = false}
+                  >
                   See all notifications
                 </button>
               </div>
@@ -416,7 +417,7 @@
                 <p class="font-medium text-xs text-gray-500">{userRole}</p>
               </div>
             </div>
-            <div class="px-4 pb-3">
+            <div class="px-4 pb-3"> 
               <button
                 class="flex items-center justify-between w-full px-4 py-3 mt-1 mb-1 text-sm rounded-xl text-gray-700 bg-violet-100 hover:bg-violet-200 cursor-pointer transition-colors duration-300"
                 role="menuitem"
@@ -487,6 +488,7 @@
                 class="flex items-center justify-between w-full px-4 py-3 mt-1 mb-1 text-sm rounded-xl text-gray-700  hover:bg-violet-200 cursor-pointer transition-colors duration-300"
                 role="menuitem"
                 aria-label="Help & Support"
+                on:click={() => closeAllDropdowns()}
               >
                 <div class="flex items-center">
                   <svg
@@ -544,6 +546,8 @@
                 class="flex items-center justify-between w-full px-4 py-3 mt-1 mb-1 text-sm rounded-xl text-gray-700  hover:bg-violet-200 cursor-pointer transition-colors duration-300"
                 role="menuitem"
                 aria-label="Log Out"
+                on:click={() => closeAllDropdowns()}
+                on:click={() => goto("/login")}
               >
                 <div class="flex items-center">
                   <svg

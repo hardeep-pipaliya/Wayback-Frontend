@@ -30,7 +30,7 @@
         selectedUrls: 25,
         scrapedArticles: 150,
         paymentStatus: 'Paid' as PaymentStatus,
-        statusMessage: 'Active',
+        statusMessage: 'Created',
         processId: 'proc-123'
       }
     ];
@@ -181,15 +181,15 @@
           </th>
           <th
             scope="col"
-            class="py-3.5 pl-4 w-20 text-left whitespace-nowrap font-medium text-gray-900 capitalize"
-          >
-            Actions
-          </th>
-          <th
-            scope="col"
             class="py-3.5 pl-4 w-fit text-left whitespace-nowrap font-medium text-gray-900 capitalize"
           >
             Status
+          </th>
+          <th
+            scope="col"
+            class="py-3.5 pl-4 w-20 text-left whitespace-nowrap font-medium text-gray-900 capitalize"
+          >
+            Actions
           </th>
         </tr>
       </thead>
@@ -214,6 +214,11 @@
               <td class="py-3.5 pl-4 whitespace-nowrap">
                 <span class="px-2 py-1 rounded-full text-xs {row.paymentStatus === 'Pending' ? 'bg-yellow-100 text-yellow-800' : row.paymentStatus === 'Paid' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
                   {row.paymentStatus}
+                </span>
+              </td>
+              <td class="py-3.5 pl-4 whitespace-nowrap">
+                <span class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+                  {row.statusMessage}
                 </span>
               </td>
               <td class="py-3.5 px-4">
@@ -276,11 +281,6 @@
                     </a>
                   {/if}
                 </div>
-              </td>
-              <td class="py-3.5 pl-4 whitespace-nowrap">
-                <span class="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
-                  {row.statusMessage}
-                </span>
               </td>
             </tr>
           {/each}

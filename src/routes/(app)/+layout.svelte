@@ -1,5 +1,5 @@
 <script lang="ts">
-  import "../app.css"
+  import "../../app.css"
   import Header from "$lib/layouts/Header.svelte";
   import Sidebar from "$lib/layouts/Sidebar.svelte";
   import { sidebarStore } from "$lib/stores/sidebar";
@@ -19,7 +19,7 @@
       <!-- Header -->
       <Header />
       <!-- Routed Page Content -->
-      <main class="w-full px-8 py-6 pt-28 h-[calc(100vh-7rem)] overflow-y-auto scroll-smooth">
+      <main class="w-full px-8 py-6 pt-28 h-[calc(100vh-1px)] overflow-y-auto scroll-smooth">
         <slot />
       </main>
     </div>
