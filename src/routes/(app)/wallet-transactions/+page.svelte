@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import Pagination from '$lib/components/Pagination.svelte';
+  import { goto } from '$app/navigation';
   // Types
   interface Transaction {
     id: number;
@@ -207,10 +208,10 @@
     searchTransactions();
   }
 
-  function goBack(): void {
-    resetForm();
-    showAddButton = true; // Show the Add button when Previous is clicked
-  }
+  // function goBack(): void {
+  //   resetForm();
+  //   showAddButton = true; // Show the Add button when Previous is clicked
+  // }
 
   let pagination = {
     total_count: 1,
@@ -259,21 +260,6 @@
           />
         </div>
       {/if}
-
-      {#if showBackButton}
-        <div class="flex items-center gap-2 max-md:flex-wrap max-md:justify-center">
-          <!-- Back Button -->
-          <button 
-            on:click={goBack}
-            class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-gray-800 border border-gray-600 rounded-lg hover:bg-gray-700"
-          >
-            <svg width="7" height="12" viewBox="0 0 7 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M5.99953 11.78C5.87286 11.78 5.7462 11.7333 5.6462 11.6333L1.29953 7.28668C0.592865 6.58001 0.592865 5.42001 1.29953 4.71335L5.6462 0.36668C5.83953 0.173346 6.15953 0.173346 6.35286 0.36668C6.5462 0.560013 6.5462 0.880013 6.35286 1.07335L2.0062 5.42001C1.6862 5.74001 1.6862 6.26001 2.0062 6.58001L6.35286 10.9267C6.5462 11.12 6.5462 11.44 6.35286 11.6333C6.25286 11.7267 6.1262 11.78 5.99953 11.78Z" fill="white"></path>
-            </svg>
-            Previous
-          </button>
-        </div>
-      {/if}
     </div>
   </div>
 
@@ -281,7 +267,14 @@
   <div class="bg-blue-50 w-1/3 py-3 mt-2 px-4 rounded-2xl">
     <div class="flex items-center justify-between gap-3">
       <div class="block">
-        <p class="font-semibold text-base text-gray-500 mb-1">Available Credit</p>
+        <div class="flex items-center gap-2 mb-1">
+          <p class="font-semibold text-base text-gray-500">Available Credit</p>
+          <!-- <svg width="18" height="20" viewBox="0 0 18 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10.4244 8.41187L7.39676 19.9999H0L1.49985 14.299L10.4244 8.41187Z" fill="#072654"/>
+            <path d="M17.1411 0L11.887 19.9996H8.28174L11.8311 6.4554L6.39062 10.0417L7.35947 6.47403L17.1411 0Z" fill="#3395FF"/>
+          </svg>
+          <span class="text-sm font-medium text-gray-800">Razorpay</span>    -->
+        </div>
         <p class="font-bold text-xl text-black">${walletBalance.toFixed(2)}</p>
       </div>
 
