@@ -2,13 +2,29 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import WaybackChart from "$lib/components/WaybackChart.svelte";
+  import type { PageData } from './$types';
 
+  export let data: PageData;
+
+  // Get action and id from page data
+  const { action, id } = data;
+  
   // Stepper state
   let domainName = "";
+  
+  // Initialize domain name for update action
+  onMount(() => {
+    if (action === 'update' && id) {
+      // Load existing domain data for update
+      // You can fetch domain data here based on the id
+      console.log('Loading domain for update:', id);
+      domainName = `example-${id}.com`; // Replace with actual domain data
+    }
+  });
 
   function handleSubmit() {
     if (!domainName?.trim()) return;
-    console.log("Submitted domain:", domainName);
+    console.log(`${action === 'create' ? 'Creating' : 'Updating'} domain:`, domainName);
     // Start step 1 logs only after submit
     currentStep = 1;
     step1Enabled = true;
@@ -433,7 +449,7 @@
   <!-- Left Side: Title Section -->
   <div>
     <h3 class="text-lg font-semibold text-black">Domain</h3>
-    <p class="text-xs text-gray-500">Create new Domain</p>
+    <p class="text-xs text-gray-500">{action === 'create' ? 'Create new Domain' : `Update Domain (ID: ${id})`}</p>
   </div>
 
   <!-- Right Side: Buttons -->
@@ -508,17 +524,18 @@
                 id="domain-name"
                 name="domain_name"
                 bind:value={domainName}
-                class="block w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none"
+                class="block w-full px-3 py-2 text-sm text-gray-900 border border-gray-300 rounded-lg focus:outline-none {action === 'update' ? 'bg-gray-100 cursor-not-allowed' : ''}"
                 placeholder="Enter Domain Name Here"
+                readonly={action === 'update'}
               />
             </div>
             <button
               type="button"
-              on:click={handleSubmit}
+              on:click={action === 'create' ? handleSubmit : handleNext}
               class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700 flex-shrink-0"
-              disabled={!domainName?.trim()}
+              disabled={action === 'create' && !domainName?.trim()}
             >
-              Submit
+              {action === 'create' ? 'Submit' : 'Next'}
             </button>
           </div>
         </div>
@@ -1247,4 +1264,3 @@
     </div>
   </div>
 {/if}
-
