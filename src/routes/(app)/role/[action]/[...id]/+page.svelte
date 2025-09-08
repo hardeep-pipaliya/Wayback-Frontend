@@ -18,7 +18,10 @@
     import Dropdown from "$lib/components/Dropdown.svelte";
     import RadioButton from "$lib/components/RadioButton.svelte";
     import CheckBox1 from "$lib/components/CheckBox1.svelte";
-    let action = "";
+    import type { PageData } from './$types';
+
+    export let data: PageData;
+    const { action, id } = data;
   </script>
   
   <div

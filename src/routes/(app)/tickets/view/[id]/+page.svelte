@@ -4,7 +4,7 @@
   import { page } from "$app/stores";
 
   // Types
-  interface Ticket {
+  type Ticket = {
     id: string;
     ticketId: string;
     subject: string;
@@ -16,21 +16,21 @@
     email: string;
     dateCreated: string;
     lastUpdated: string;
-  }
+  };
 
-  interface Message {
+  type Message = {
     id: string;
     content: string;
     timestamp: string;
     sender: "user" | "support";
     isError?: boolean;
-  }
+  };
 
-  interface Rating {
+  type Rating = {
     value: number;
     emoji: string;
     label: string;
-  }
+  };
 
   // Props
   export let data: { ticket?: Ticket };
@@ -227,34 +227,21 @@
     </div>
   </div>
 
+<!-- Loading State -->
   {#if isLoading}
-    <!-- Loading State -->
-    <div class="flex items-center justify-center py-20">
+    <div class="flex justify-center items-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <span class="ml-2 text-gray-600">Loading ticket data...</span>
+    </div>
+  {:else if !ticket}
+    <div class="flex justify-center items-center py-12">
       <div class="text-center">
-        <svg
-          class="animate-spin h-12 w-12 text-indigo-600 mx-auto mb-4"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            class="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            stroke-width="4"
-          ></circle>
-          <path
-            class="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        <p class="text-gray-600">Loading ticket...</p>
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">Ticket Not Found</h3>
+        <p class="text-gray-600 mb-4">The ticket you're looking for doesn't exist.</p>
+        <a href="/tickets/" class="text-indigo-600 hover:text-indigo-700">Back to Tickets</a>
       </div>
     </div>
-  {:else if ticket}
+  {:else}
     <div class="grid grid-cols-12 gap-6 pt-6">
       <!-- Chat Section -->
       <div class="col-span-12 lg:col-span-8">

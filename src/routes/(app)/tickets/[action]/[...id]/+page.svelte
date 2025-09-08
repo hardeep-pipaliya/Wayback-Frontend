@@ -6,14 +6,17 @@
   import TextArea from "$lib/components/TextArea.svelte";
 
   // Types
-  interface TicketForm {
+  type TicketForm = {
     subject: string;
     description: string;
     category: string;
     priority: string;
     username: string;
     email: string;
-  }
+  };
+
+  // Props
+  export let data: { action: string; id?: string };
 
   // Form state
   let ticketForm: TicketForm = {
@@ -28,6 +31,13 @@
   // Form validation
   let errors: Partial<TicketForm> = {};
   let isSubmitting = false;
+
+  // Computed values
+  $: isCreateMode = data.action === 'create';
+  $: isUpdateMode = data.action === 'update';
+  $: pageTitle = isCreateMode ? 'Create Quick Ticket' : 'Update Ticket';
+  $: submitButtonText = isCreateMode ? 'Create Ticket' : 'Update Ticket';
+  $: submittingText = isCreateMode ? 'Creating...' : 'Updating...';
 
   // Options for radio buttons
   const categoryOptions = [
@@ -92,24 +102,54 @@
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      console.log("Ticket created:", ticketForm);
+      if (isCreateMode) {
+        console.log("Ticket created:", ticketForm);
+        alert("Ticket created successfully!");
+      } else {
+        console.log("Ticket updated:", ticketForm);
+        alert("Ticket updated successfully!");
+      }
       
-      // Show success message and redirect
-      alert("Ticket created successfully!");
+      // Redirect back to tickets list
       goto("/tickets");
       
     } catch (error) {
-      console.error("Error creating ticket:", error);
-      alert("Failed to create ticket. Please try again.");
+      console.error(`Error ${isCreateMode ? 'creating' : 'updating'} ticket:`, error);
+      alert(`Failed to ${isCreateMode ? 'create' : 'update'} ticket. Please try again.`);
     } finally {
       isSubmitting = false;
     }
   }
 
-  // Initialize form with default values
-  onMount(() => {
-    ticketForm.category = categoryOptions[0];
-    ticketForm.priority = priorityOptions[0];
+  // Initialize form with default values or existing data
+  onMount(async () => {
+    if (isCreateMode) {
+      // Set default values for create mode
+      ticketForm.category = categoryOptions[0];
+      ticketForm.priority = priorityOptions[0];
+    } else if (isUpdateMode && data.id) {
+      // Load existing ticket data for update mode
+      try {
+        // Simulate API call to fetch ticket data
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        // Mock existing ticket data - in real app, this would come from API
+        const existingTicket = {
+          subject: "Payment Issue",
+          description: "I'm having trouble with my payment processing",
+          category: "Billing Issue",
+          priority: "High",
+          username: "john_doe",
+          email: "john@example.com" 
+        };
+        
+        ticketForm = { ...existingTicket };
+      } catch (error) {
+        console.error("Error loading ticket data:", error);
+        alert("Failed to load ticket data. Please try again.");
+        goto("/tickets");
+      }
+    }
   });
 </script>
 
@@ -119,7 +159,7 @@
     <!-- Left Side: Title Section -->
     <div>
       <h3 class="text-2xl font-bold text-gray-900">Support</h3>
-      <p class="text-sm text-gray-600">Create Quick Ticket</p>
+      <p class="text-sm text-gray-600">{pageTitle}</p>
     </div>
 
     <!-- Right Side: Back Button -->
@@ -141,10 +181,10 @@
     <div class="col-span-12 lg:col-span-8">
       <div class="p-6 border border-gray-200 rounded-2xl bg-white">
         <h5 class="text-xl font-semibold text-gray-900 pb-4 border-b border-gray-200">
-          Create Quick Ticket
+          {pageTitle}
         </h5>
         <p class="text-sm text-gray-500 mt-2 mb-6">
-          Write and address new queries and issues here
+          {isCreateMode ? 'Write and address new queries and issues here' : 'Update the ticket information below'}
         </p>
 
         <form on:submit|preventDefault={handleSubmit} class="flex flex-col gap-6">
@@ -244,9 +284,9 @@
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
-                Creating...
+                {submittingText}
               {:else}
-                Create Ticket
+                {submitButtonText}
               {/if}
             </button>
           </div>

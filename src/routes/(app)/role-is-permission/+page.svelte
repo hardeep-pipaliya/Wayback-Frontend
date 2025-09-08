@@ -1,12 +1,15 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
+    import SortBy from "$lib/components/SortBy.svelte";
+    import PerPageSelecter from "$lib/components/PerPageSelecter.svelte";
+    import Pagination from "$lib/components/Pagination.svelte";
   
     import { onMount } from "svelte";
   
     type Permission = "create" | "list" | "update" | "view";
   
-    interface Route {
+    type Route = {
       id: string;
       name: string;
       permissions: {
@@ -17,7 +20,7 @@
       };
       isExpanded: boolean;
       isSelected: boolean;
-    }
+    };
   
     let routes: Route[] = [
       {
@@ -183,6 +186,11 @@
           }
         });
       }
+
+    // let searchQuery = "";
+    // let sortBy: "";
+    // let perPage = 10;
+
     }
   </script>
   
@@ -194,6 +202,19 @@
       <h3 class="text-lg font-semibold text-black">Roles & Permissions</h3>
       <p class="text-xs text-gray-500">Update role & permission</p>
     </div>
+
+    <!-- Filter Controls -->
+    <!-- <SortBy 
+    selectedValue={sortBy} 
+    on:sortChange={(e) => sortBy = e.detail.value}
+  />
+  <PerPageSelecter 
+    value={perPage} 
+    on:change={(e) => perPage = e.detail.value}
+    options={[5, 10, 20, 50]}
+    label="Show:"
+  /> -->
+
   
     <!-- Right Side: Button -->
     <div

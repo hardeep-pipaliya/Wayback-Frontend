@@ -2,20 +2,23 @@
   import { onMount } from 'svelte';
   import Pagination from '$lib/components/Pagination.svelte';
   import { goto } from '$app/navigation';
+  import SortBy from '$lib/components/SortBy.svelte';
+  import PerPageSelecter from '$lib/components/PerPageSelecter.svelte';
+
   // Types
-  interface Transaction {
+  type Transaction = {
     id: number;
     description: string;
     amount: number;
     transactionType: 'credit' | 'debit';
     dateTime: string;
-  }
+  };
 
-  interface PaymentProvider {
+  type PaymentProvider = {
     id: string;
     name: string;
     icon: string;
-  }
+  };
 
   // State variables
   let walletBalance: number = 0;
@@ -34,6 +37,8 @@
   let currentPage: number = 1;
   let totalPages: number = 0;
   let totalResults: number = 0;
+  let sortBy: '-created_date' | 'name' | '-name' = '-created_date';
+  let perPage: number = 10;
 
   // Predefined amounts
   const predefinedAmounts: string[] = ['$20', '$50', '$80', '$100'];
@@ -208,6 +213,11 @@
     searchTransactions();
   }
 
+  function handleSortChange(event: CustomEvent<{ value: '-created_date' | 'name' | '-name' }>) {
+    sortBy = event.detail.value;
+    currentPage = 1;
+  }  
+
   // function goBack(): void {
   //   resetForm();
   //   showAddButton = true; // Show the Add button when Previous is clicked
@@ -219,6 +229,8 @@
     limit: 10,
     total_pages: 2,
   };
+
+
 
   function handlePageChange() {
     console.log("clicked on page change");}
@@ -255,13 +267,30 @@
             type="search" 
             bind:value={searchQuery}
             on:input={handleSearch}
-            class="block w-full max-w-xs pr-4 pl-8 py-2 text-sm font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none leading-relaxed" 
+            class="block w-full max-w-xs pr-4 pl-10 py-2 text-sm font-normal shadow-xs text-gray-900 bg-white border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600" 
             placeholder="Search here . . ."
           />
         </div>
       {/if}
+      
+      <!-- Filter Controls -->
+      {#if !showBackButton}
+        <SortBy 
+          selectedValue={sortBy} 
+          on:sortChange={handleSortChange}
+        />
+        
+        <PerPageSelecter 
+          value={perPage} 
+          on:change={(e) => perPage = e.detail.value}
+          options={[5, 10, 20, 50]}
+          label="Per Page:"
+        />
+      {/if}
     </div>
   </div>
+
+
 
   <!-- Wallet Balance Section -->
   <div class="bg-blue-50 w-1/3 py-3 mt-2 px-4 rounded-2xl">

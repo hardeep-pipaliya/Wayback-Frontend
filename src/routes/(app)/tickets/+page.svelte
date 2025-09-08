@@ -2,9 +2,11 @@
   import { onMount } from "svelte";
   import { goto } from "$app/navigation";
   import Pagination from "$lib/components/Pagination.svelte";
+  import PerPageSelecter from "$lib/components/PerPageSelecter.svelte";
+  import SortBy from "$lib/components/SortBy.svelte";
 
-  // Types
-  interface Ticket {
+  // Types  
+  type Ticket = {
     id: string;
     ticketId: string;
     subject: string;
@@ -12,15 +14,15 @@
     priority: "low" | "normal" | "high" | "urgent";
     dateCreated: string;
     lastUpdated: string;
-  }
+  };
 
   // State
   let tickets: Ticket[] = [];
-  let filteredTickets: Ticket[] = [];
   let searchQuery = "";
   let loading = false;
   let currentPage = 1;
-  const itemsPerPage = 10;
+  let sortBy: "-created_date" | "name" | "-name" = "-created_date";
+  let perPage = 10; 
 
   // Mock data for testing
   const mockTickets: Ticket[] = [
@@ -44,30 +46,48 @@
     },
   ];
 
-  // Computed values
-  $: filteredTickets = tickets.filter(
-    (ticket) =>
-      ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.ticketId.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ticket.status.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Computed values - Filtered and sorted tickets
+  $: filteredTickets = tickets
+    .filter(
+      (ticket) =>
+        ticket.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ticket.ticketId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        ticket.status.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.subject.localeCompare(b.subject);
+        case '-name':
+          return b.subject.localeCompare(a.subject);
+        case '-created_date':
+        default:
+          return 0; // Keep original order for now
+      }
+    });
 
-  $: totalPages = Math.ceil(filteredTickets.length / itemsPerPage);
+  $: totalPages = Math.ceil(filteredTickets.length / perPage);
   $: paginatedTickets = filteredTickets.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    (currentPage - 1) * perPage,
+    currentPage * perPage
   );
 
   // Pagination object for the component
   $: paginationData = {
     total_count: filteredTickets.length,
-    offset: (currentPage - 1) * itemsPerPage,
-    limit: itemsPerPage,
+    offset: (currentPage - 1) * perPage,
+    limit: perPage,
     total_pages: totalPages
   };
 
+
   // Functions
   function handleSearch() {
+    currentPage = 1;
+  }
+
+  function handleSortChange(event: CustomEvent) {
+    sortBy = event.detail.value;
     currentPage = 1;
   }
 
@@ -171,6 +191,20 @@
         />
       </div>
 
+      <!-- Filter Controls -->
+      <SortBy 
+        selectedValue={sortBy} 
+        on:sortChange={handleSortChange}
+      />
+
+      <PerPageSelecter 
+        value={perPage} 
+        on:change={(e) => perPage = e.detail.value}
+        options={[5, 10, 20, 50]}
+        label="Per Page:"
+      />
+
+
       <!-- Create Ticket Button -->
       <button
         on:click={() => goto("/tickets/create")}
@@ -256,7 +290,7 @@
         {#each paginatedTickets as ticket, index}
           <tr class="transition-all duration-500 hover:bg-gray-50">
             <td class="py-3.5 pl-4 whitespace-nowrap"
-              >{(currentPage - 1) * itemsPerPage + index + 1}</td
+              >{(currentPage - 1) * perPage + index + 1}</td
             >
             <td class="py-3.5 pl-4 whitespace-nowrap font-normal text-gray-900">
               {ticket.ticketId}
@@ -290,12 +324,12 @@
             </td>
             <td class="py-3.5 px-4">
               <div class="flex font-poppins">
-                <!-- Edit -->
+                <!-- Update -->
                 <button
                   class="mr-2"
-                  aria-label="Edit"
+                  aria-label="Update"
                   on:click={() => goto(`/tickets/update/${ticket.id}`)}
-                  title="Edit ticket"
+                  title="Updte ticket"
                 >
                   <svg
                     width="32"

@@ -2,22 +2,25 @@
   import FlipSwitch from "$lib/components/FlipSwitch.svelte";
   import Pagination from "$lib/components/Pagination.svelte";
   import { onMount } from "svelte";
+  import SortBy from "$lib/components/SortBy.svelte";
+  import PerPageSelecter from "$lib/components/PerPageSelecter.svelte";
+
 
   // Types
-  interface ConfigurationSetting {
+  type ConfigurationSetting = {
     id: string;
     name: string;
     description: string;
     status: boolean;
     slug_id: string;
-  }
+  };
 
-  interface PaginationData {
+  type PaginationData = {
     total_count: number;
     offset: number;
     limit: number;
     total_pages: number;
-  }
+  };
 
   // State
   let configurations: ConfigurationSetting[] = [];
@@ -28,6 +31,8 @@
     total_pages: 0,
   };
   let searchQuery = "";
+  let sortBy: "-created_date" | "name" | "-name" = "-created_date";
+  let perPage = 10;
 
   // Static test data
   const testData: ConfigurationSetting[] = [
@@ -54,19 +59,31 @@
     },
   ];
 
-  // Filtered configurations based on search
-  $: filteredConfigurations = configurations.filter(
-    (config) =>
-      config.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      config.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Filtered and sorted configurations
+  $: filteredConfigurations = configurations
+    .filter(
+      (config) =>
+        config.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        config.description.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.name.localeCompare(b.name);
+        case '-name':
+          return b.name.localeCompare(a.name);
+        case '-created_date':
+        default:
+          return 0; // Keep original order for now
+      }
+    });
 
   // Update pagination based on filtered results
   $: pagination = {
     total_count: filteredConfigurations.length,
     offset: 0,
-    limit: 10,
-    total_pages: Math.ceil(filteredConfigurations.length / 10),
+    limit: perPage,
+    total_pages: Math.ceil(filteredConfigurations.length / perPage),
   };
 
   // Functions
@@ -106,6 +123,7 @@
   onMount(() => {
     configurations = [...testData];
   });
+
 </script>
 
 <div>
@@ -145,10 +163,22 @@
           type="text"
           bind:value={searchQuery}
           on:input={handleSearch}
-          class="block w-full max-w-xs pr-4 pl-8 py-2 text-sm font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none leading-relaxed"
+          class="block w-full max-w-xs pr-4 pl-10 py-2 text-sm font-normal shadow-xs text-gray-900 bg-white border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600"
           placeholder="Search here . . ."
         />
       </div>
+
+      <!-- Filter Controls -->
+      <SortBy 
+        selectedValue={sortBy} 
+        on:sortChange={(e) => sortBy = e.detail.value}
+      />
+      <PerPageSelecter 
+        value={perPage} 
+        on:change={(e) => perPage = e.detail.value}
+        options={[5, 10, 20, 50]}
+        label="Per Page:"
+      />
 
       <!-- Add Configuration Button -->
       <a
@@ -173,6 +203,7 @@
       </a>
     </div>
   </div>
+
 
   <!-- Table Section -->
   <div

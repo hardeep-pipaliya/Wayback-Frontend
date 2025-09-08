@@ -1,13 +1,15 @@
 <script lang="ts">
   import Pagination from "$lib/components/Pagination.svelte";
   import FlipSwitch from "$lib/components/FlipSwitch.svelte";
+  import PerPageSelecter from "$lib/components/PerPageSelecter.svelte";
+  import UserSortBy from "$lib/components/UserSortBy.svelte";
   import { createEventDispatcher } from "svelte";
   import { goto } from "$app/navigation";
 
   const dispatch = createEventDispatcher();
 
   // Types
-  interface User {
+  type User = {
     id: string;
     firstName: string;
     lastName: string;
@@ -17,7 +19,7 @@
     status: boolean;
   }
 
-  interface PaginationData {
+  type PaginationData = {
     total_count: number;
     offset: number;
     limit: number;
@@ -47,6 +49,12 @@
   ];
 
   let searchQuery = "";
+  
+  // Pagination and sorting state
+  let currentPage: number = 1;
+  let itemsPerPage: number = 10;
+  let sortBy: '-created_date' | 'firstName' | '-firstName' | 'lastName' | '-lastName' | 'email' | '-email' = '-created_date';
+  
   let pagination: PaginationData = {
     total_count: 2,
     offset: 0,
@@ -62,19 +70,64 @@
     user.email.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Sort users based on sortBy
+  $: sortedUsers = [...filteredUsers].sort((a, b) => {
+    switch (sortBy) {
+      case 'firstName':
+        return a.firstName.localeCompare(b.firstName);
+      case '-firstName':
+        return b.firstName.localeCompare(a.firstName);
+      case 'lastName':
+        return a.lastName.localeCompare(b.lastName);
+      case '-lastName':
+        return b.lastName.localeCompare(a.lastName);
+      case 'email':
+        return a.email.localeCompare(b.email);
+      case '-email':
+        return b.email.localeCompare(a.email);
+      case '-created_date':
+      default:
+        return b.id.localeCompare(a.id); // Assuming newer IDs come first
+    }
+  });
+
+  // Paginated users
+  $: paginatedUsers = sortedUsers.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  // Update pagination when filtered users change
+  $: {
+    pagination = {
+      total_count: sortedUsers.length,
+      offset: (currentPage - 1) * itemsPerPage,
+      limit: itemsPerPage,
+      total_pages: Math.ceil(sortedUsers.length / itemsPerPage)
+    };
+  }
+
   // Event handlers
   function handleSearch(event: Event) {
     const target = event.target as HTMLInputElement;
     searchQuery = target.value;
+    currentPage = 1; // Reset to first page when searching
+  }
+
+  // Handle per page change
+  function handlePerPageChange(event: CustomEvent<{ value: number }>) {
+    itemsPerPage = event.detail.value;
+    currentPage = 1; // Reset to first page when changing items per page
+  }
+
+  // Handle sort change
+  function handleSortChange(event: CustomEvent<{ value: string }>) {
+    sortBy = event.detail.value as '-created_date' | 'firstName' | '-firstName' | 'lastName' | '-lastName' | 'email' | '-email';
+    currentPage = 1; // Reset to first page when sorting
   }
 
   function handlePageChange(page: number) {
-    const newOffset = (page - 1) * pagination.limit;
-    pagination.offset = newOffset;
-    
-    // Here you would typically fetch data from API
-    console.log('Page changed to:', page, 'Offset:', newOffset);
-    // fetchUsers(newOffset, pagination.limit);
+    currentPage = page;
   }
 
   function handleStatusChange(userId: string, checked: boolean) {
@@ -119,8 +172,8 @@
       <p class="text-xs text-gray-500">Manage your user detail.</p>
     </div>
 
-    <!-- Right Side: Buttons and Search -->
-    <div class="flex items-center gap-2 max-md:flex-wrap max-md:justify-center">
+    <!-- Right Side: Search, Controls and Button -->
+    <div class="flex flex-col lg:flex-row items-center gap-3 max-md:flex-wrap max-md:justify-center">
       <!-- Search Box -->
       <div class="relative text-gray-500 focus-within:text-gray-900">
         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -133,9 +186,22 @@
           id="search-input" 
           bind:value={searchQuery}
           on:input={handleSearch}
-          class="block w-full max-w-xs pr-4 pl-8 py-2 text-sm font-normal shadow-xs text-gray-900 bg-transparent border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none leading-relaxed" 
+          class="block w-full max-w-xs pr-4 pl-10 py-2 text-sm font-normal shadow-xs text-gray-900 bg-white border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600" 
           placeholder="Search here . . ."
         >
+      </div>
+
+      <!-- Pagination and Sort Controls -->
+      <div class="flex items-center gap-3">
+        <PerPageSelecter 
+          value={itemsPerPage}
+          options={[5, 10, 25, 50, 100]}
+          on:change={handlePerPageChange}
+        />
+        <UserSortBy 
+          selectedValue={sortBy}
+          on:sortChange={handleSortChange}
+        />
       </div>
 
       <!-- Add User Button -->
@@ -186,7 +252,7 @@
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-200 text-sm font-normal">
-        {#each filteredUsers as user, index}
+        {#each paginatedUsers as user, index}
           <tr class="transition-all duration-500 hover:bg-gray-50">
             <td class="py-3.5 pl-4 whitespace-nowrap">{index + 1}</td>
             <td class="py-3.5 pl-4 whitespace-nowrap font-normal text-gray-900 pb-6">
