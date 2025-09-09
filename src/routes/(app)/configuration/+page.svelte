@@ -30,8 +30,9 @@
     limit: 10,
     total_pages: 0,
   };
+  
   let searchQuery = "";
-  let sortBy: "-created_date" | "name" | "-name" = "-created_date";
+  let sortBy: string = "-created_date";
   let perPage = 10;
 
   // Static test data
@@ -139,6 +140,24 @@
     </div>
 
     <div class="flex items-center gap-2 max-md:flex-wrap max-md:justify-center">
+
+      <!-- Filter Controls -->
+      <PerPageSelecter 
+        value={perPage} 
+        on:change={(e) => perPage = e.detail.value}
+        options={[5, 10, 20, 50]}
+        label="Per Page:"
+      />
+      
+      <SortBy 
+        selectedValue={sortBy} 
+        on:sortChange={(e) => sortBy = e.detail.value}
+        columns={[
+          { value: 'created_date', label: 'Created Date', type: 'date' },
+          { value: 'name', label: 'Name', type: 'text' }
+        ]}
+      />
+
       <!-- Search Box -->
       <div class="relative text-gray-500 focus-within:text-gray-900">
         <div
@@ -167,18 +186,6 @@
           placeholder="Search here . . ."
         />
       </div>
-
-      <!-- Filter Controls -->
-      <SortBy 
-        selectedValue={sortBy} 
-        on:sortChange={(e) => sortBy = e.detail.value}
-      />
-      <PerPageSelecter 
-        value={perPage} 
-        on:change={(e) => perPage = e.detail.value}
-        options={[5, 10, 20, 50]}
-        label="Per Page:"
-      />
 
       <!-- Add Configuration Button -->
       <a

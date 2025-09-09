@@ -213,15 +213,30 @@
     searchTransactions();
   }
 
-  function handleSortChange(event: CustomEvent<{ value: '-created_date' | 'name' | '-name' }>) {
-    sortBy = event.detail.value;
+  function handleSortChange(event: CustomEvent<{ value: string; column: string; order: string }>) {
+    sortBy = event.detail.value as '-created_date' | 'name' | '-name';
     currentPage = 1;
   }  
 
-  // function goBack(): void {
-  //   resetForm();
-  //   showAddButton = true; // Show the Add button when Previous is clicked
-  // }
+  // Filtered and sorted configurations
+  $: filteredTransactions = transactions
+    .filter(
+      (transaction) =>
+        transaction.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        transaction.dateTime.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      switch (sortBy) {
+        case 'name':
+          return a.description.localeCompare(b.description);
+        case '-name':
+          return b.description.localeCompare(a.description);
+        case '-created_date':
+        default:
+          return 0; // Keep original order for now
+      }
+    });
+  
 
   let pagination = {
     total_count: 1,
@@ -255,6 +270,27 @@
 
     <!-- Right Side: Buttons and Search -->
     <div class="flex items-center gap-2 max-md:flex-wrap max-md:justify-center">
+      
+      <PerPageSelecter 
+        value={perPage} 
+        on:change={(e) => perPage = e.detail.value}
+        options={[5, 10, 20, 50]}
+                label="Per Page:"
+      />
+      <!-- Filter Controls -->
+      {#if !showBackButton}
+  <SortBy 
+      selectedValue={sortBy} 
+      on:sortChange={handleSortChange}
+      columns={[
+        { value: 'created_date', label: 'Created Date', type: 'date' },
+        { value: 'description', label: 'Description', type: 'text' },
+        { value: 'amount', label: 'Amount', type: 'text' },
+        { value: 'transactionType', label: 'Transaction Type', type: 'text' }
+      ]}
+    />
+
+      {/if}
       <!-- Search Box -->
       {#if !showBackButton}
         <div class="relative text-gray-500 focus-within:text-gray-900">
@@ -271,21 +307,6 @@
             placeholder="Search here . . ."
           />
         </div>
-      {/if}
-      
-      <!-- Filter Controls -->
-      {#if !showBackButton}
-        <SortBy 
-          selectedValue={sortBy} 
-          on:sortChange={handleSortChange}
-        />
-        
-        <PerPageSelecter 
-          value={perPage} 
-          on:change={(e) => perPage = e.detail.value}
-          options={[5, 10, 20, 50]}
-          label="Per Page:"
-        />
       {/if}
     </div>
   </div>

@@ -41,9 +41,10 @@
   // Pagination and sorting state
   let currentPage: number = 1;
   let itemsPerPage: number = 10;
+  let perPage: number = 10;
   let sortBy: '-created_date' | 'name' | '-name' = '-created_date';
 
-  // Filtered and sorted roles
+  // Filtered and sorted roles  
   $: filteredRoles = roles.filter(role => 
     role.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -100,8 +101,8 @@
   }
 
   // Handle sort change
-  function handleSortChange(event: CustomEvent<{ value: '-created_date' | 'name' | '-name' }>) {
-    sortBy = event.detail.value;
+  function handleSortChange(event: CustomEvent<{ value: string; column: string; order: string }>) {
+    sortBy = event.detail.value as '-created_date' | 'name' | '-name';
     currentPage = 1; // Reset to first page when sorting
   }
 
@@ -141,6 +142,26 @@
       </div>
       <!-- Right Side: Search, Controls and Button -->
       <div class="flex flex-col lg:flex-row items-center gap-3 max-md:flex-wrap max-md:justify-center">
+        <!-- Pagination and Sort Controls -->
+          <div class="flex items-center gap-3">
+            <PerPageSelecter 
+            value={perPage} 
+            on:change={handlePerPageChange}
+            options={[5, 10, 20, 50]}
+            label="Per Page:"
+          />
+          
+            <SortBy 
+              selectedValue={sortBy}
+              on:sortChange={handleSortChange}
+              columns={[
+                { value: 'created_date', label: 'Created Date', type: 'date' },
+                { value: 'name', label: 'Role Name', type: 'text' }
+              ]}
+            />
+          </div>
+
+
         <!-- Search Box -->
         <div class="relative text-gray-500 focus-within:text-gray-900">
           <div
@@ -171,19 +192,6 @@
           />
         </div>
 
-        <!-- Pagination and Sort Controls -->
-        <div class="flex items-center gap-3">
-          <PerPageSelecter 
-            value={itemsPerPage}
-            options={[5, 10, 25, 50, 100]}
-            on:change={handlePerPageChange}
-          />
-          <SortBy 
-            selectedValue={sortBy}
-            on:sortChange={handleSortChange}
-          />
-        </div>
-  
         <!-- Add Role Button -->
         <button
           onclick={() => {

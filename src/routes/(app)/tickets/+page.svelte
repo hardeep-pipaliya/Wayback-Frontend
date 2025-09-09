@@ -86,8 +86,8 @@
     currentPage = 1;
   }
 
-  function handleSortChange(event: CustomEvent) {
-    sortBy = event.detail.value;
+  function handleSortChange(event: CustomEvent<{ value: string; column: string; order: string }>) {
+    sortBy = event.detail.value as "-created_date" | "name" | "-name";
     currentPage = 1;
   }
 
@@ -162,6 +162,25 @@
     </div>
 
     <div class="flex items-center gap-3 max-md:flex-wrap max-md:justify-center">
+      
+      <PerPageSelecter 
+      value={perPage} 
+      on:change={(e) => perPage = e.detail.value}
+      options={[5, 10, 20, 50]}
+      label="Per Page:"
+      />
+      
+      <!-- Filter Controls -->
+      <SortBy 
+      selectedValue={sortBy} 
+      on:sortChange={handleSortChange}
+      columns={[
+        { value: 'created_date', label: 'Created Date', type: 'date' },
+        { value: 'subject', label: 'Subject', type: 'text' },
+        { value: 'status', label: 'Status', type: 'text' },
+        { value: 'priority', label: 'Priority', type: 'text' }
+      ]}
+    />
       <!-- Search Box -->
       <div class="relative text-gray-500 focus-within:text-gray-900">
         <div
@@ -190,20 +209,6 @@
           placeholder="Search tickets..."
         />
       </div>
-
-      <!-- Filter Controls -->
-      <SortBy 
-        selectedValue={sortBy} 
-        on:sortChange={handleSortChange}
-      />
-
-      <PerPageSelecter 
-        value={perPage} 
-        on:change={(e) => perPage = e.detail.value}
-        options={[5, 10, 20, 50]}
-        label="Per Page:"
-      />
-
 
       <!-- Create Ticket Button -->
       <button

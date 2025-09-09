@@ -2,9 +2,9 @@
   import Pagination from "$lib/components/Pagination.svelte";
   import FlipSwitch from "$lib/components/FlipSwitch.svelte";
   import PerPageSelecter from "$lib/components/PerPageSelecter.svelte";
-  import UserSortBy from "$lib/components/UserSortBy.svelte";
   import { createEventDispatcher } from "svelte";
   import { goto } from "$app/navigation";
+  import SortBy from "$lib/components/SortBy.svelte";
 
   const dispatch = createEventDispatcher();
 
@@ -121,7 +121,7 @@
   }
 
   // Handle sort change
-  function handleSortChange(event: CustomEvent<{ value: string }>) {
+  function handleSortChange(event: CustomEvent<{ value: string; column: string; order: string }>) {
     sortBy = event.detail.value as '-created_date' | 'firstName' | '-firstName' | 'lastName' | '-lastName' | 'email' | '-email';
     currentPage = 1; // Reset to first page when sorting
   }
@@ -174,6 +174,24 @@
 
     <!-- Right Side: Search, Controls and Button -->
     <div class="flex flex-col lg:flex-row items-center gap-3 max-md:flex-wrap max-md:justify-center">
+      <!-- Pagination and Sort Controls -->
+      <div class="flex items-center gap-3">
+        <PerPageSelecter 
+          value={itemsPerPage}
+          options={[5, 10, 25, 50, 100]}
+          on:change={handlePerPageChange}
+        />
+          <SortBy 
+            selectedValue={sortBy}
+            on:sortChange={handleSortChange}
+            columns={[
+              { value: 'created_date', label: 'Created Date', type: 'date' },
+              { value: 'firstName', label: 'First Name', type: 'text' },
+              { value: 'lastName', label: 'Last Name', type: 'text' },
+              { value: 'email', label: 'Email', type: 'text' }
+            ]}
+          />
+      </div>
       <!-- Search Box -->
       <div class="relative text-gray-500 focus-within:text-gray-900">
         <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -189,19 +207,6 @@
           class="block w-full max-w-xs pr-4 pl-10 py-2 text-sm font-normal shadow-xs text-gray-900 bg-white border border-gray-300 rounded-lg placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:border-indigo-600" 
           placeholder="Search here . . ."
         >
-      </div>
-
-      <!-- Pagination and Sort Controls -->
-      <div class="flex items-center gap-3">
-        <PerPageSelecter 
-          value={itemsPerPage}
-          options={[5, 10, 25, 50, 100]}
-          on:change={handlePerPageChange}
-        />
-        <UserSortBy 
-          selectedValue={sortBy}
-          on:sortChange={handleSortChange}
-        />
       </div>
 
       <!-- Add User Button -->
