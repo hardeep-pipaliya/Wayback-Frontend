@@ -2,6 +2,7 @@
   import { goto } from "$app/navigation";
   import { onMount } from "svelte";
   import WaybackChart from "$lib/components/WaybackChart.svelte";
+  import PerPageSelecter from "$lib/components/PerPageSelecter.svelte";
   import type { PageData } from './$types';
 
   export let data: PageData;
@@ -28,95 +29,88 @@
     // Start step 1 logs only after submit
     currentStep = 1;
     step1Enabled = true;
-    startStep1IfNeeded();
+    startStepIfNeeded(1);
   }
   let currentStep: number = 1;
   const totalSteps: number = 5;
 
-  // Step 1 processing state (logs + progress)
+  // Unified step state
   type LogEntry = { index: number; message: string };
-  let step1Logs: LogEntry[] = [];
-  let step1Running = false;
-  let step1Completed = false;
-  let step1Enabled = false;
-  $: isCurrentStepRunning =
-    (currentStep === 1 && step1Running) ||
-    (currentStep === 2 && step2Running) ||
-    (currentStep === 3 && step3Running) ||
-    (currentStep === 4 && step4Running) ||
-    (currentStep === 5 && step5Running);
+  type StepState = {
+    logs: LogEntry[];
+    running: boolean;
+    completed: boolean;
+    messages: string[];
+  };
 
-  const step1Messages: string[] = [
-    "Starting installation. Upgrading system to latest update. This will take a while...",
-    "Upgraded system to latest software version. Bootstrapping installation...",
-    "Enabling swap if not enabled...",
-    "Finalizing setup...",
+  let step1Enabled = false; // preserves submit gating for step 1
+
+  let steps: StepState[] = [
+    {
+      logs: [],
+      running: false,
+      completed: false,
+      messages: [
+        "Starting installation. Upgrading system to latest update. This will take a while...",
+        "Upgraded system to latest software version. Bootstrapping installation...",
+        "Enabling swap if not enabled...",
+        "Finalizing setup...",
+      ],
+    },
+    {
+      logs: [],
+      running: false,
+      completed: false,
+      messages: [
+        "Fetching Wayback snapshot timeline...",
+        "Building year-month histogram...",
+        "Grouping snapshots by period and filtering duplicates...",
+        "Preparing preview screenshots...",
+        "Finalizing selection UI...",
+      ],
+    },
+    {
+      logs: [],
+      running: false,
+      completed: false,
+      messages: [
+        "Initializing content extraction...",
+        "Analyzing HTML structure...",
+        "Identifying content selectors...",
+        "Processing title and metadata...",
+        "Extracting images and links...",
+        "Finalizing content extraction...",
+      ],
+    },
+    {
+      logs: [],
+      running: false,
+      completed: false,
+      messages: [
+        "Loading Wayback URLs...",
+        "Filtering and processing URLs...",
+        "Generating URL list...",
+        "Preparing selection interface...",
+        "Finalizing URL processing...",
+      ],
+    },
+    {
+      logs: [],
+      running: false,
+      completed: false,
+      messages: [
+        "Calculating final statistics...",
+        "Processing payment details...",
+        "Generating overview report...",
+        "Preparing download options...",
+        "Finalizing process...",
+      ],
+    },
   ];
 
-  // Step 2 processing state (logs)
-  let step2Logs: LogEntry[] = [];
-  let step2Running = false;
-  let step2Completed = false;
-  const step2Messages: string[] = [
-    "Fetching Wayback snapshot timeline...",
-    "Building year-month histogram...",
-    "Grouping snapshots by period and filtering duplicates...",
-    "Preparing preview screenshots...",
-    "Finalizing selection UI...",
-  ];
+  $: isCurrentStepRunning = steps[currentStep - 1]?.running ?? false;
 
-  // Step 3 processing state (logs)
-  let step3Logs: LogEntry[] = [];
-  let step3Running = false;
-  let step3Completed = false;
-  const step3Messages: string[] = [
-    "Initializing content extraction...",
-    "Analyzing HTML structure...",
-    "Identifying content selectors...",
-    "Processing title and metadata...",
-    "Extracting images and links...",
-    "Finalizing content extraction...",
-  ];
-
-  // Step 4 processing state (logs)
-  let step4Logs: LogEntry[] = [];
-  let step4Running = false;
-  let step4Completed = false;
-  const step4Messages: string[] = [
-    "Loading Wayback URLs...",
-    "Filtering and processing URLs...",
-    "Generating URL list...",
-    "Preparing selection interface...",
-    "Finalizing URL processing...",
-  ];
-
-  // Step 5 processing state (logs)
-  let step5Logs: LogEntry[] = [];
-  let step5Running = false;
-  let step5Completed = false;
-  const step5Messages: string[] = [
-    "Calculating final statistics...",
-    "Processing payment details...",
-    "Generating overview report...",
-    "Preparing download options...",
-    "Finalizing process...",
-  ];
-
-  function getCircleClasses(step: number): string {
-    if (step <= currentStep) {
-      return "flex items-center justify-center w-[34px] h-[34px] bg-indigo-500 text-white rounded-full transition-colors duration-300";
-    } else {
-      return "flex items-center justify-center w-[34px] h-[34px] bg-gray-200 text-gray-400 rounded-full transition-colors duration-300";
-    }
-  }
-
-  function getLineClasses(step: number): string {
-    if (step < currentStep) {
-      return "flex-1 h-0.5 bg-indigo-500 transition-colors duration-300";
-    } else {
-      return "flex-1 h-0.5 bg-gray-300 transition-colors duration-300";
-    }
-  }
+  // Removed unused circle/line class helpers (classes are inlined in template)
 
   function getPrevBtnClasses(): string {
     if (currentStep === 1) {
@@ -147,11 +141,7 @@
     if (step >= 1 && step <= totalSteps && !isCurrentStepRunning) {
       const maxAllowedStep = Math.max(
         1,
-        step1Completed ? 1 : 0,
-        step2Completed ? 2 : 0,
-        step3Completed ? 3 : 0,
-        step4Completed ? 4 : 0,
-        step5Completed ? 5 : 0
+        ...steps.map((s, i) => (s.completed ? i + 1 : 0))
       );
 
       if (step <= maxAllowedStep + 1) {
@@ -162,172 +152,52 @@
 
   // Check if a step is completed
   function isStepCompleted(step: number): boolean {
-    switch (step) {
-      case 1:
-        return step1Completed;
-      case 2:
-        return step2Completed;
-      case 3:
-        return step3Completed;
-      case 4:
-        return step4Completed;
-      case 5:
-        return step5Completed;
-      default:
-        return false;
-    }
+    const s = steps[step - 1];
+    return !!s?.completed;
   }
 
   // Check if next button should be shown for current step
   function shouldShowNextButton(): boolean {
     if (currentStep >= totalSteps) return false;
-
-    switch (currentStep) {
-      case 1:
-        return step1Completed && !step1Running;
-      case 2:
-        return step2Completed && !step2Running;
-      case 3:
-        return step3Completed && !step3Running;
-      case 4:
-        return step4Completed && !step4Running;
-      case 5:
-        return step5Completed && !step5Running;
-      default:
-        return false;
-    }
+    const s = steps[currentStep - 1];
+    return !!s && s.completed && !s.running;
   }
 
-  // Start Step 1 logs when entering step 1 (only after submit)
-  function startStep1IfNeeded() {
-    if (!step1Enabled || currentStep !== 1 || step1Running || step1Completed)
-      return;
-    step1Running = true;
-    step1Logs = [];
+  // Unified step starter
+  function startStepIfNeeded(stepIndex: number) {
+    const idx = stepIndex - 1;
+    const step = steps[idx];
+    if (!step) return;
+    if (idx === 0 && !step1Enabled) return; // gate step 1 until submit
+    if (currentStep !== stepIndex || step.running || step.completed) return;
+
+    step.running = true;
+    step.logs = [];
     let i = 0;
-    const total = step1Messages.length;
+    const total = step.messages.length;
     const interval = setInterval(() => {
-      const message = step1Messages[i];
-      step1Logs = [...step1Logs, { index: i + 1, message }];
+      const message = step.messages[i];
+      step.logs = [...step.logs, { index: i + 1, message }];
       i++;
       if (i >= total) {
         clearInterval(interval);
-        step1Running = false;
-        step1Completed = true;
-        // Step 1 is now completed, user can proceed to next step
+        step.running = false;
+        step.completed = true;
+        // trigger reactivity
+        steps = [...steps];
+      } else {
+        steps = [...steps];
       }
     }, 600);
+    steps = [...steps];
   }
 
-  // Start Step 2 logs when entering step 2
-  function startStep2IfNeeded() {
-    if (currentStep !== 2 || step2Running || step2Completed) return;
-    step2Running = true;
-    step2Logs = [];
-    let i = 0;
-    const total = step2Messages.length;
-    const interval = setInterval(() => {
-      const message = step2Messages[i];
-      step2Logs = [...step2Logs, { index: i + 1, message }];
-      i++;
-      if (i >= total) {
-        clearInterval(interval);
-        step2Running = false;
-        step2Completed = true;
-        // Step 2 is now completed, user can proceed to next step
-      }
-    }, 600);
-  }
-
-  // Start Step 3 logs when entering step 3
-  function startStep3IfNeeded() {
-    if (currentStep !== 3 || step3Running || step3Completed) return;
-    step3Running = true;
-    step3Logs = [];
-    let i = 0;
-    const total = step3Messages.length;
-    const interval = setInterval(() => {
-      const message = step3Messages[i];
-      step3Logs = [...step3Logs, { index: i + 1, message }];
-      i++;
-      if (i >= total) {
-        clearInterval(interval);
-        step3Running = false;
-        step3Completed = true;
-        // Step 3 is now completed, user can proceed to next step
-      }
-    }, 600);
-  }
-
-  // Start Step 4 logs when entering step 4
-  function startStep4IfNeeded() {
-    if (currentStep !== 4 || step4Running || step4Completed) return;
-    step4Running = true;
-    step4Logs = [];
-    let i = 0;
-    const total = step4Messages.length;
-    const interval = setInterval(() => {
-      const message = step4Messages[i];
-      step4Logs = [...step4Logs, { index: i + 1, message }];
-      i++;
-      if (i >= total) {
-        clearInterval(interval);
-        step4Running = false;
-        step4Completed = true;
-        // Step 4 is now completed, user can proceed to next step
-      }
-    }, 600);
-  }
-
-  // Start Step 5 logs when entering step 5
-  function startStep5IfNeeded() {
-    if (currentStep !== 5 || step5Running || step5Completed) return;
-    step5Running = true;
-    step5Logs = [];
-    let i = 0;
-    const total = step5Messages.length;
-    const interval = setInterval(() => {
-      const message = step5Messages[i];
-      step5Logs = [...step5Logs, { index: i + 1, message }];
-      i++;
-      if (i >= total) {
-        clearInterval(interval);
-        step5Running = false;
-        step5Completed = true;
-      }
-    }, 600);
-  }
-
-  // Do not auto-start step 1 on mount. Only run after submit sets step1Enabled.
-  $: if (currentStep === 1) {
-    startStep1IfNeeded();
-  }
-
-  // Kick off when entering step 2
-  $: if (currentStep === 2) {
-    startStep2IfNeeded();
-  }
-
-  // Kick off when entering step 3
-  $: if (currentStep === 3) {
-    startStep3IfNeeded();
-  }
-
-  // Kick off when entering step 4
-  $: if (currentStep === 4) {
-    startStep4IfNeeded();
-  }
-
-  // Kick off when entering step 5
-  $: if (currentStep === 5) {
-    startStep5IfNeeded();
-  }
+  // Kick off when entering any step (step 1 still gated by submit)
+  $: startStepIfNeeded(currentStep);
 
   // Step 4 functions for wayback URLs
   let perPageValue: number = 10;
   let searchKeyword: string = "";
-  let waybackUrls: any[] = [];
-  let selectedUrls: any[] = [];
 
   function listWaybackArticleUrls() {
     // This function will handle filtering and pagination
@@ -335,25 +205,10 @@
     // Add your filtering logic here
   }
 
-  function handlePerPageChange(event: Event) {
-    const target = event.target as HTMLSelectElement;
-    perPageValue = parseInt(target.value);
-    listWaybackArticleUrls();
-  }
-
   function handleSearchInput(event: Event) {
     const target = event.target as HTMLInputElement;
     searchKeyword = target.value;
     listWaybackArticleUrls();
-  }
-
-  function handleSelectAll(event: Event) {
-    const target = event.target as HTMLInputElement;
-    if (target.checked) {
-      selectedUrls = [...waybackUrls];
-    } else {
-      selectedUrls = [];
-    }
   }
 
   // Add Fund Modal State
@@ -509,7 +364,7 @@
   <!-- STEP 1: Domain + Logs (logs bottom) -->
   {#if currentStep === 1}
     <div>
-      {#if !step1Running && !step1Completed}
+      {#if !steps[0].running && !steps[0].completed}
         <!-- Show domain input and submit button only before submission -->
         <div class="p-4 mb-4 border border-gray-200 rounded-2xl">
           <label
@@ -546,13 +401,13 @@
         <div
           class="bg-black text-gray-200 text-xs p-4 max-h-80 overflow-auto space-y-2"
         >
-          {#each step1Logs as row}
+          {#each steps[0].logs as row}
             <div class="flex gap-3">
               <span class="text-indigo-400">{row.index}.</span>
               <span class="text-gray-200">{row.message}</span>
             </div>
           {/each}
-          {#if step1Running}
+          {#if steps[0].running}
             <div class="animate-pulse text-gray-400">Processing...</div>
           {/if}
         </div>
@@ -585,13 +440,13 @@
             <div
               class="bg-black text-gray-200 text-xs p-4 max-h-64 overflow-auto space-y-2"
             >
-              {#each step2Logs as row}
+              {#each steps[1].logs as row}
                 <div class="flex gap-3">
                   <span class="text-indigo-400">{row.index}.</span>
                   <span class="text-gray-200">{row.message}</span>
                 </div>
               {/each}
-              {#if step2Running}
+              {#if steps[1].running}
                 <div class="animate-pulse text-gray-400">Processing...</div>
               {/if}
             </div>
@@ -634,7 +489,6 @@
             >Save</button
           >
         </div>
-
         <div class="grid grid-cols-12 gap-4">
           <div class="col-span-12 lg:col-span-7">
             <div class="text-sm font-medium mb-2">Article HTML</div>
@@ -662,13 +516,13 @@
             <div
               class="bg-black text-gray-200 text-xs p-4 max-h-64 overflow-auto space-y-2"
             >
-              {#each step3Logs as row}
+              {#each steps[2].logs as row}
                 <div class="flex gap-3">
                   <span class="text-indigo-400">{row.index}.</span>
                   <span class="text-gray-200">{row.message}</span>
                 </div>
               {/each}
-              {#if step3Running}
+              {#if steps[2].running}
                 <div class="animate-pulse text-gray-400">Processing...</div>
               {/if}
             </div>
@@ -715,17 +569,15 @@
             class="flex flex-wrap items-center justify-end gap-2 max-md:justify-center"
           >
             <!-- Per Page Selection -->
-            <span class="text-[16px] font-poppins">Per Page</span>
-            <select
+            <PerPageSelecter
               bind:value={perPageValue}
-              on:change={handlePerPageChange}
-              class="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
-            >
-              <option value={10}>10</option>
-              <option value={100}>100</option>
-              <option value={500}>500</option>
-              <option value={1000}>1000</option>
-            </select>
+              options={[10, 100, 500, 1000]}
+              label="Per Page"
+              on:change={(event) => {
+                perPageValue = event.detail.value;
+                listWaybackArticleUrls();
+              }}
+            />
 
             <!-- Search Box -->
             <div class="relative text-gray-500 focus-within:text-gray-900">
@@ -830,13 +682,13 @@
             <div
               class="bg-black text-gray-200 text-xs p-4 max-h-64 overflow-auto space-y-2"
             >
-              {#each step4Logs as row}
+              {#each steps[3].logs as row}
                 <div class="flex gap-3">
                   <span class="text-indigo-400">{row.index}.</span>
                   <span class="text-gray-200">{row.message}</span>
                 </div>
               {/each}
-              {#if step4Running}
+              {#if steps[3].running}
                 <div class="animate-pulse text-gray-400">Processing...</div>
               {/if}
             </div>
@@ -1073,13 +925,13 @@
         <div
           class="bg-black text-gray-200 text-xs p-4 max-h-64 overflow-auto space-y-2"
         >
-          {#each step5Logs as row}
+          {#each steps[4].logs as row}
             <div class="flex gap-3">
               <span class="text-indigo-400">{row.index}.</span>
               <span class="text-gray-200">{row.message}</span>
             </div>
           {/each}
-          {#if step5Running}
+          {#if steps[4].running}
             <div class="animate-pulse text-gray-400">Processing...</div>
           {/if}
         </div>
